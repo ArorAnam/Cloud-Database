@@ -6,7 +6,7 @@
 */
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = 5001;
 const path = require("path");
 let publicPath = path.resolve(__dirname, "public");
 app.use(express.static(publicPath));
@@ -105,6 +105,8 @@ function createDatabase(req, res) {
             });
         }, 5000);
     });
+
+    console.log("All records sucessfully received !!!");
 }
 
 /* - QUERY - */
