@@ -1,8 +1,6 @@
 <!--
-    Internet Applications Assignment 2
-    Naman Arora
-    Student number: 19323369
-    29/11/2020
+    Author: Naman Arora
+    Date: 29/11/2020
 -->
 <!DOCTYPE html>
 <html>
@@ -11,7 +9,7 @@
         <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
 
         <div id="app">
-            <!--Movie inputs and buttons-->
+            <!-- INPUTS -->
             <button v-on:click="createDatabaseBtn">Create Database</button><br>
 
             Movie name: <input v-model="userMovieName"><br>
@@ -20,7 +18,7 @@
 
             <button v-on:click="destroyDatabaseBtn">Destroy Database</button>
 
-            <!-- Query results section -->
+            <!-- RESULTS -->
             <p v-if="queryMovies.length>0">Movies starting with "{{userMovieName}}" from {{userMovieYear}}</p>
             <li v-for="movie in queryMovies" :key="movie.movieName">
                 {{ movie.movieName }}
@@ -36,40 +34,43 @@
                     queryMovies: []
                 },
                 methods:{
-                    createDatabaseBtn: createDatabase,
-                    queryDatabaseBtn: queryDatabase,
-                    destroyDatabaseBtn: destroyDatabase 
+                    createDatabaseBtn: databaseCreate,
+                    queryDatabaseBtn: databaseQuery,
+                    destroyDatabaseBtn: databaseDestroy 
                 }
             })
 
-            function createDatabase() {
+            // Clicking each of these buttons will invoke API primitives 
+            // on your Cloud-based server and deal with the responses.
+
+            function databaseCreate() {
                 /*
-                Should cause your Node.js server to make a table in a DynamoDB database – fetch the raw
-                data from the S3 object and upload it to the newly created database. You can use a small sub-set of
-                the fields including [title, release-date, rank].
+                Make a table in a DynamoDB database – fetch the raw
+                data from the S3 object and upload it to the newly created database.
                 */
-                console.log("Create Database!");
+                console.log("Creating the database !!");
                 let prom = fetch("/create");
             }
-            function queryDatabase() {
+
+            function databaseQuery() {
                 /* 
-                Should cause your Node.js server to find all the movies in a given year, that begin-with the
+                Find all the movies in a given year, that begin-with the
                 entered text string – and display them on the web-page.
                 */
-                console.log("Query Database!");
+                console.log("Quering the database !!");
                 let prom = fetch("/query/" + this.userMovieYear + "/" + this.userMovieName);
-                // Get respone JSON data, plug it into Vue variables
+
+                // Get response, put it into Vue variables
                 prom.then(response => response.json())
                     .then(response => {
                         this.queryMovies = response.list;
                         console.log(response.list);
                     })
             }
-            function destroyDatabase() {
-                /*
-                Should cause the database table to be deleted.
-                */
-                console.log("Destroy Database!");
+
+            function databaseDestroy() {
+                //Should cause the database table to be deleted.
+                console.log("Database being destroyed !!");
                 let prom = fetch("/destroy");  
             }
         </script>

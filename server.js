@@ -1,8 +1,6 @@
 /*
-    Internet Applications Assignment 2
-    Naman Arora
-    Student number: 19323369
-    29/11/2020
+    Author: Naman Arora
+    Date: 29/11/2020
 */
 const express = require('express');
 const app = express();
@@ -10,7 +8,6 @@ const port = 5001;
 const path = require("path");
 let publicPath = path.resolve(__dirname, "public");
 app.use(express.static(publicPath));
-// Grab fetch package
 const fetch = require("node-fetch");
 
 app.listen(port, () => console.log(`App listening on port ${port}!`));
@@ -24,11 +21,11 @@ app.get('/', (req, res) => {
     res.sendFile('index.html', {root: __dirname})
 })
 
-/* - CREATE - */
+// _______________________________Create Database _______________________________
 /*
-Make a table in a DynamoDB database.
-Fetch the raw data from the S3 object.
-Upload it to the newly created database.
+This will make a table in a DynamoDB database on the cloud.
+the it will fetch the raw data from the S3 object.
+And finally upload it to the newly created database.
 */
 function createDatabase(req, res) {
     // Set up AWS and DynamoDB
@@ -56,19 +53,21 @@ function createDatabase(req, res) {
     // Create the table
     dynamodb.createTable(params, function(err, data) {
         if (err) {
-            console.error("Unable to create table. Error JSON:", JSON.stringify(err, null, 2));
+            console.error("Error in creating table. Error JSON:", JSON.stringify(err, null, 2));
         } else {
-            console.log("Created table. Table description JSON:", JSON.stringify(data, null, 2));
+            console.log("Table creation successful. Table description JSON:", JSON.stringify(data, null, 2));
         }
     });
 
-    // Fetch movie data from the S3 object, with a 5 second delay to give DynamoDB a chance to create the table
+    // Fetch movie data from the S3 object
+    // Have a 5 second delay
     let p = new Promise((res) => {
         setTimeout(() => {
             // Fetch S3 data
             const s3 = new AWS.S3();
             let objectData = null;
             var getParams = {
+                // provided in the assignment description
                 Bucket: 'csu44000assign2useast20',
                 Key: 'moviedata.json'
             }
@@ -82,8 +81,8 @@ function createDatabase(req, res) {
                 var jsonData = JSON.parse(objectData);
                 var docClient = new AWS.DynamoDB.DocumentClient();
                 
-                // Add data to database
-                console.log("Importing movies into DynamoDB. Please wait.");
+                // Now add data to database
+                console.log("Please wait.....Ipmporting movies to DynamoDB");
                 jsonData.forEach(function(movie) {
                     var params = {
                         TableName: "Movies",
@@ -98,7 +97,7 @@ function createDatabase(req, res) {
                         if (err) {
                             console.error("Unable to add movie", movie.title, ". Error JSON:", JSON.stringify(err, null, 2));
                         } else {
-                            console.log("PutItem succeeded:", movie.title);
+                            console.log("Item added successfully: ", movie.title);
                         }
                     });
                 });
@@ -109,13 +108,15 @@ function createDatabase(req, res) {
     console.log("All records sucessfully received !!!");
 }
 
-/* - QUERY - */
+// ________________________________Query Database_________________________________
 /*
-Find all the movies in a given year, that begin with the entered text string.
-Display them on the webpage.
+Here we find all the movies in a given year.
+that begin with the entered text string.
+There are two input boxes to allow a movie name and a year to be entered.
+Also display them on the webpage.
 */
 function queryDatabase(req, res) {
-    // Grab user input
+    // get the year & movie
     let userYear = req.params.year;
     let userMovie = req.params.name;
     
@@ -127,7 +128,7 @@ function queryDatabase(req, res) {
     AWS.config.update({region: "us-east-1"});
     var docClient = new AWS.DynamoDB.DocumentClient();
 
-    // Set up parameters for querying
+    // set the query parameters
     var params = {
         TableName : "Movies",
         ProjectionExpression:"#yr, title",
@@ -141,14 +142,14 @@ function queryDatabase(req, res) {
         }
     };
 
-    // Create return JSON object
+    // make object for return
     var jsonStr = '{"list":[]}';
     var jsonObj = JSON.parse(jsonStr);
 
-    // Make query
+    // Do the query
     docClient.query(params, function(err, data) {
         if (err) {
-            console.log("Unable to query. Error:", JSON.stringify(err, null, 2));
+            console.log("Query unsuccessful. Error:", JSON.stringify(err, null, 2));
         } else {
             console.log("Query succeeded.");
             data.Items.forEach(function(item) {
@@ -157,12 +158,12 @@ function queryDatabase(req, res) {
                 console.log(" -", item.year + ": " + item.title);
             });
         }
-        // Return the list of movies
+        // Lastly return the list of movies
         res.json(jsonObj);
     });
 }
 
-/* - DESTROY - */
+// _________________________________Destroy Database________________________________
 /*
 Delete the database table.
 */
@@ -179,7 +180,7 @@ function destroyDatabase(req, res) {
         if (err) {
             console.error("Unable to delete table. Error JSON:", JSON.stringify(err, null, 2));
         } else {
-            console.log("Deleted table. Table description JSON:", JSON.stringify(data, null, 2));
+            console.log("Deleted the table. Table description JSON:", JSON.stringify(data, null, 2));
         }
     });
 }
